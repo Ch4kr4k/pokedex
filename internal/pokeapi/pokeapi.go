@@ -1,11 +1,22 @@
 package pokeapi
 
-type LocationAreaRespStruct struct {
-	Count    int     `json:"count"`
-	Next     *string `json:"next"`
-	Previous *string `json:"previous"` // interface{} -> any
-	Results  []struct {
-		Name string `json:"name"`
-		URL  string `json:"url"`
-	} `json:"results"`
+import (
+	"net/http"
+	"time"
+)
+
+const baseURL = "https://pokeapi.co/api/v2"
+
+type Client struct {
+	cache      Cache
+	httpClient http.Client
+}
+
+func NewClient(cacheInterval time.Duration) Client {
+	return Client{
+		cache: NewCache(cacheInterval),
+		httpClient: http.Client{
+			Timeout: time.Minute,
+		},
+	}
 }

@@ -3,12 +3,14 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 )
 
-func startRepl() {
+func startRepl(cfg *config) {
 	scanner := bufio.NewScanner(os.Stdin)
+	var args []string
 	for {
 		fmt.Print("> ")
 		scanner.Scan()
@@ -19,20 +21,27 @@ func startRepl() {
 		}
 		commandName := cleaned[0]
 
+		if len(cleaned) > 1 {
+			args = cleaned[1:]
+		}
+
 		availableCommands := getCommands()
 		command, ok := availableCommands[commandName]
 		if !ok {
 			fmt.Println("Invalid Command")
 			continue
 		}
-		command.callback()
+		err := command.callback(cfg, args...)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 }
 
 type clicommand struct {
 	name        string
 	description string
-	callback    func() error
+	callback    func(*config, ...string) error
 }
 
 func getCommands() map[string]clicommand {
@@ -46,6 +55,31 @@ func getCommands() map[string]clicommand {
 			name:        "exit",
 			description: "Turns off the pokedex",
 			callback:    callbackExit,
+		},
+		"map": {
+			name:        "map",
+			description: "List next location areas",
+			callback:    callBackMap,
+		},
+		"mapb": {
+			name:        "mapb",
+			description: "go back to previous map",
+			callback:    callBackMapb,
+		},
+		"explore": {
+			name:        "explore {location area name}",
+			description: "explore pokemon in area",
+			callback:    callbackExplore,
+		},
+		"catch": {
+			name:        "catch {pokemon area name}",
+			description: "catch pokemon",
+			callback:    callbackCatch,
+		},
+		"inspect": {
+			name:        "inspect {pokemon}",
+			description: "inspect catched pokemon",
+			callback:    callbackInspect,
 		},
 	}
 
